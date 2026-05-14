@@ -410,6 +410,7 @@ button {
 
 .mode-card {
     flex: 1;
+    min-width: 120px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
@@ -448,6 +449,16 @@ button {
     padding: 20px 30px;
     border-bottom: 1px solid var(--glass-border);
     background: rgba(0, 0, 0, 0.2);
+}
+
+.chat-controls .control-group:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-controls .control-group:last-child {
+    width: 260px;
+    flex-shrink: 0;
 }
 
 .chat-display {
@@ -974,4 +985,108 @@ button {
 .copy-code-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
+}
+
+@media (max-width: 1100px) {
+    .top-header {
+        height: auto;
+        padding: 16px 20px;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .deploy-panel {
+        max-width: 100%;
+    }
+
+    .chat-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .chat-controls .control-group:last-child {
+        width: 100%;
+    }
+
+    .mode-cards {
+        flex-wrap: wrap;
+    }
+
+    .message {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 860px) {
+    body {
+        overflow: auto;
+    }
+
+    .app-container {
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .nav-item {
+        flex: 1 1 140px;
+        justify-content: center;
+    }
+
+    .module-view {
+        position: relative;
+        padding: 16px;
+    }
+
+    .split-view {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .left-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .chat-controls,
+    .chat-display,
+    .chat-input-area,
+    .left-panel,
+    .right-panel {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .user-info {
+        max-width: 100%;
+        border-radius: 20px;
+        padding-right: 12px;
+    }
+
+    .user-details {
+        min-width: 0;
+    }
+
+    .deploy-status {
+        max-width: 180px;
+    }
 }

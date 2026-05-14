@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
     <!-- 自定义样式表 -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260514-free1">
 </head>
 <body>
 
@@ -82,34 +82,18 @@
                     <div class="chat-controls">
                         <div class="control-group" style="margin-bottom: 20px;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
-                                <label style="margin-bottom:0;">智能工作模式 (依据 Puter.js 官方能力自动切换底层引擎)</label>
+                                <label style="margin-bottom:0;">免费优先模式 (当前仅保留低成本/免费模型)</label>
                                 <button id="chat-clear-btn" class="secondary-btn small" title="清空屏幕对话并重置上下文记忆"><i class="fa-solid fa-trash-can"></i> 新对话</button>
                             </div>
                             <div class="mode-cards" id="mode-cards">
-                                <div class="mode-card" data-mode="standard">
-                                    <i class="fa-solid fa-bolt"></i>
-                                    <span>极速全能</span>
-                                </div>
-                                <div class="mode-card active" data-mode="search">
-                                    <i class="fa-solid fa-globe"></i>
-                                    <span>实时联网</span>
-                                </div>
-                                <div class="mode-card" data-mode="reasoning">
-                                    <i class="fa-solid fa-brain"></i>
-                                    <span>深度推理</span>
-                                </div>
-                                <div class="mode-card" data-mode="coding">
-                                    <i class="fa-solid fa-code"></i>
-                                    <span>长文代码</span>
-                                </div>
-                                <div class="mode-card" data-mode="free">
+                                <div class="mode-card active" data-mode="free">
                                     <i class="fa-solid fa-gift"></i>
-                                    <span>白嫖专区</span>
+                                    <span>免费专区</span>
                                 </div>
                             </div>
                         </div>
                         <div class="control-group" style="margin-bottom: 0;">
-                            <label>底层引擎 (自动映射)</label>
+                            <label>免费模型</label>
                             <select id="chat-model-select">
                                 <!-- 由 JS 动态填充 -->
                             </select>
@@ -117,7 +101,7 @@
                     </div>
                     
                     <div class="chat-display" id="chat-display">
-                        <div class="message ai">欢迎来到智能中枢。在此体验全球最顶尖的 AI 模型。支持一键切换并自动调用您账户内的免费额度。</div>
+                        <div class="message ai">欢迎来到智能中枢免费版。当前仅显示免费或低成本模型，适合日常对话、轻量分析和基础多模态使用。</div>
                     </div>
                     
                     <div class="chat-input-area">
@@ -141,13 +125,9 @@
                     <div class="left-panel">
                         <h3>控制台</h3>
                         <div class="control-group">
-                            <label>绘图模型</label>
+                            <label>绘图模型 (免费优先)</label>
                             <select id="img-model-select">
                                 <option value="black-forest-labs/flux-schnell">FLUX Schnell (光速生成/白嫖优选)</option>
-                                <option value="black-forest-labs/flux-1.1-pro">FLUX 1.1 Pro (开源巅峰)</option>
-                                <option value="openai/dall-e-3">DALL-E 3 (语义最准)</option>
-                                <option value="google/imagen-4">Google Imagen 4 (细节狂魔)</option>
-                                <option value="x-ai/grok-2-image">Grok-2-Image (风格多变)</option>
                             </select>
                         </div>
                         <div class="control-group">
@@ -210,6 +190,7 @@
                     <!-- TTS 区域 -->
                     <div class="left-panel">
                         <h3>🗣️ 情感语音合成 (TTS)</h3>
+                        <p class="sub-text">当前语音能力走 xAI，可能消耗账户额度，不属于本页免费专区。</p>
                         <div class="control-group">
                             <label>发音人 (xAI Voices)</label>
                             <select id="tts-voice-select">
@@ -251,6 +232,7 @@
                     <!-- STT 区域 -->
                     <div class="right-panel">
                         <h3>🎙️ 语音智能转写 (STT)</h3>
+                        <p class="sub-text">语音转写同样可能消耗额度，建议按需使用。</p>
                         <div class="stt-container">
                             <button type="button" class="mic-circle" id="mic-btn" title="开始录音" aria-label="开始或结束录音">
                                 <i class="fa-solid fa-microphone"></i>
@@ -309,6 +291,6 @@
     </div>
 </div>
 
-<script src="js/app.js"></script>
+<script src="js/app.js?v=20260514-free1"></script>
 </body>
 </html>

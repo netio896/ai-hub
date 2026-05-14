@@ -222,21 +222,6 @@ class ChatModule {
         
         // 根据能力特性将模式映射到对应的 Puter 原生模型
         this.modelsMap = {
-            'standard': [
-                { id: 'openai/gpt-4o', name: 'GPT-4o (全能旗舰)' },
-                { id: 'meta-llama/llama-3-70b-instruct', name: 'Llama 3 70B (开源巨兽)' }
-            ],
-            'search': [
-                { id: 'perplexity/sonar-pro', name: 'Perplexity Sonar Pro (最强实时联网检索与研究)' },
-                { id: 'perplexity/sonar', name: 'Perplexity Sonar (极速联网获取事实)' }
-            ],
-            'reasoning': [
-                { id: 'x-ai/grok-4.3', name: 'Grok 4.3 (旗舰深度推理模型)' },
-                { id: 'openai/o3-mini', name: 'o3-mini (数学与逻辑极客模型)' }
-            ],
-            'coding': [
-                { id: 'anthropic/claude-3-5-sonnet', name: 'Claude 3.5 Sonnet (长文本与代码大师)' }
-            ],
             'free': [
                 { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini (日常神机/免费)' },
                 { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (轻量开源/免费)' },
@@ -271,7 +256,7 @@ class ChatModule {
     clearChat() {
         if (this.isProcessing) return;
         this.conversationHistory = [];
-        this.display.innerHTML = '<div class="message ai">上下文已被清空，我们重新开始吧。您可以随时切换上方的引擎。</div>';
+        this.display.innerHTML = '<div class="message ai">上下文已被清空。当前保持在免费专区，您可以继续使用上方可用的免费模型。</div>';
         this.currentFile = null;
         this.fileInput.value = '';
         this.attachPreview.style.display = 'none';
@@ -287,7 +272,7 @@ class ChatModule {
             });
         });
         // 初始化默认模式
-        this.updateModelDropdown('search');
+        this.updateModelDropdown('free');
     }
 
     initAttachment() {
@@ -309,7 +294,7 @@ class ChatModule {
 
     updateModelDropdown(mode) {
         this.modelSelect.innerHTML = '';
-        const models = this.modelsMap[mode] || this.modelsMap['standard'];
+        const models = this.modelsMap[mode] || this.modelsMap['free'];
         models.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
