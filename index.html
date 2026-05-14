@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omni-AI Hub | 全能 AI 工作站</title>
+    <!-- Puter.js 核心库 -->
+    <script src="https://js.puter.com/v2/"></script>
+    <!-- 字体与图标资源 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Markdown 解析与代码高亮 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <!-- 自定义样式表 -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- 侧边栏导航 -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fa-solid fa-cube"></i> Omni-AI Hub
+            </div>
+            <div class="version">Powered by Puter.js</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-target="chat-module" data-title="智能中枢 (Chat & Reasoning)">
+                <i class="fa-solid fa-comment-dots"></i> 智能中枢
+            </a>
+            <a href="#" class="nav-item" data-target="image-module" data-title="视觉工坊 (Image Generation)">
+                <i class="fa-solid fa-palette"></i> 视觉工坊
+            </a>
+            <a href="#" class="nav-item" data-target="audio-module" data-title="声音实验室 (Voice Studio)">
+                <i class="fa-solid fa-microphone-lines"></i> 声音实验室
+            </a>
+            <a href="#" class="nav-item" data-target="notes-module" data-title="云端生产力 (Cloud Notes)">
+                <i class="fa-solid fa-cloud"></i> 云端生产力
+            </a>
+        </nav>
+    </aside>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 顶部状态栏 -->
+        <header class="top-header">
+            <div class="header-left">
+                <h2 id="current-module-title">智能中枢 (Chat & Reasoning)</h2>
+            </div>
+            <div class="header-right">
+                <div class="deploy-panel">
+                    <button id="deploy-btn" class="secondary-btn small"><i class="fa-solid fa-rocket"></i> 发布到 Puter</button>
+                    <span id="deploy-status" class="deploy-status">未发布</span>
+                </div>
+                <div class="user-profile" id="user-profile">
+                    <button id="login-btn" class="primary-btn">一键授权登录</button>
+                    <div id="user-info" class="user-info" style="display: none;">
+                        <img id="user-avatar" src="" alt="Avatar">
+                        <div class="user-details">
+                            <span id="user-name">Loading...</span>
+                            <span id="user-quota" class="quota-text"><i class="fa-solid fa-spinner fa-spin"></i> 拉取算力额度...</span>
+                        </div>
+                        <a class="icon-btn" href="https://puter.com" target="_blank" title="进入 Puter 操作系统"><i class="fa-solid fa-desktop"></i></a>
+                        <button id="logout-btn" class="icon-btn" title="退出登录"><i class="fa-solid fa-sign-out-alt"></i></button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 功能模块视图区 -->
+        <div class="viewport">
+            
+            <!-- 模块一：智能中枢 -->
+            <section id="chat-module" class="module-view active">
+                <div class="module-layout">
+                    <div class="chat-controls">
+                        <div class="control-group" style="margin-bottom: 20px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
+                                <label style="margin-bottom:0;">智能工作模式 (依据 Puter.js 官方能力自动切换底层引擎)</label>
+                                <button id="chat-clear-btn" class="secondary-btn small" title="清空屏幕对话并重置上下文记忆"><i class="fa-solid fa-trash-can"></i> 新对话</button>
+                            </div>
+                            <div class="mode-cards" id="mode-cards">
+                                <div class="mode-card" data-mode="standard">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <span>极速全能</span>
+                                </div>
+                                <div class="mode-card active" data-mode="search">
+                                    <i class="fa-solid fa-globe"></i>
+                                    <span>实时联网</span>
+                                </div>
+                                <div class="mode-card" data-mode="reasoning">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>深度推理</span>
+                                </div>
+                                <div class="mode-card" data-mode="coding">
+                                    <i class="fa-solid fa-code"></i>
+                                    <span>长文代码</span>
+                                </div>
+                                <div class="mode-card" data-mode="free">
+                                    <i class="fa-solid fa-gift"></i>
+                                    <span>白嫖专区</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group" style="margin-bottom: 0;">
+                            <label>底层引擎 (自动映射)</label>
+                            <select id="chat-model-select">
+                                <!-- 由 JS 动态填充 -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-display" id="chat-display">
+                        <div class="message ai">欢迎来到智能中枢。在此体验全球最顶尖的 AI 模型。支持一键切换并自动调用您账户内的免费额度。</div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <div id="chat-attachment-preview" style="display:none;">
+                            <img id="chat-image-preview" src="">
+                            <button id="chat-remove-attachment"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="chat-input-wrapper">
+                            <button id="chat-attach-btn" class="icon-btn" title="上传图片或文档进行视觉/多模态分析"><i class="fa-solid fa-paperclip"></i></button>
+                            <input type="file" id="chat-file-input" accept="image/*" style="display:none;">
+                            <textarea id="chat-input" placeholder="输入你想探讨的任何问题... (Enter 发送，Shift+Enter 换行)"></textarea>
+                            <button id="chat-send-btn" class="primary-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 模块二：视觉工坊 -->
+            <section id="image-module" class="module-view">
+                <div class="module-layout split-view">
+                    <div class="left-panel">
+                        <h3>控制台</h3>
+                        <div class="control-group">
+                            <label>绘图模型</label>
+                            <select id="img-model-select">
+                                <option value="black-forest-labs/flux-schnell">FLUX Schnell (光速生成/白嫖优选)</option>
+                                <option value="black-forest-labs/flux-1.1-pro">FLUX 1.1 Pro (开源巅峰)</option>
+                                <option value="openai/dall-e-3">DALL-E 3 (语义最准)</option>
+                                <option value="google/imagen-4">Google Imagen 4 (细节狂魔)</option>
+                                <option value="x-ai/grok-2-image">Grok-2-Image (风格多变)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>画面比例</label>
+                            <div class="ratio-selector">
+                                <label class="ratio-option">
+                                    <input type="radio" name="aspect-ratio" value="1:1" checked>
+                                    <div class="ratio-box square"></div>
+                                    <span>1:1</span>
+                                </label>
+                                <label class="ratio-option">
+                                    <input type="radio" name="aspect-ratio" value="16:9">
+                                    <div class="ratio-box landscape"></div>
+                                    <span>16:9</span>
+                                </label>
+                                <label class="ratio-option">
+                                    <input type="radio" name="aspect-ratio" value="9:16">
+                                    <div class="ratio-box portrait"></div>
+                                    <span>9:16</span>
+                                </label>
+                                <label class="ratio-option">
+                                    <input type="radio" name="aspect-ratio" value="3:4">
+                                    <div class="ratio-box portrait-34"></div>
+                                    <span>3:4</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>提示词 (Prompt)</label>
+                            <div class="prompt-tools">
+                                <button id="magic-prompt-btn" class="secondary-btn small" title="调用 AI 帮你把短词扩写成超长神级提示词">
+                                    <i class="fa-solid fa-dice"></i> 魔法扩写
+                                </button>
+                            </div>
+                            <textarea id="img-prompt" placeholder="描述你想要生成的画面..." rows="4"></textarea>
+                        </div>
+                        <button id="generate-img-btn" class="primary-btn full-width">召唤云端画师 <i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                        <div id="img-status" class="status-text"></div>
+                    </div>
+                    <div class="right-panel gallery">
+                        <div class="gallery-placeholder" id="gallery-placeholder">
+                            <i class="fa-regular fa-image"></i>
+                            <p>你的杰作将显示在这里</p>
+                        </div>
+                        <div id="img-result-container" style="display:none;">
+                            <img id="img-result" src="" alt="Generated Image">
+                            <div class="image-actions" style="flex-wrap: wrap; justify-content: center;">
+                                <button id="save-cloud-btn" class="secondary-btn"><i class="fa-solid fa-cloud-arrow-up"></i> 保存至云端</button>
+                                <a class="secondary-btn" href="https://drive.puter.com" target="_blank" title="打开 Puter 云盘"><i class="fa-solid fa-folder-open"></i> 查看云盘</a>
+                                <a id="download-img-btn" class="secondary-btn" href="#" download="omni-ai-image.png"><i class="fa-solid fa-download"></i> 下载到本地</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 模块三：声音实验室 -->
+            <section id="audio-module" class="module-view">
+                <div class="module-layout split-view">
+                    <!-- TTS 区域 -->
+                    <div class="left-panel">
+                        <h3>🗣️ 情感语音合成 (TTS)</h3>
+                        <div class="control-group">
+                            <label>发音人 (xAI Voices)</label>
+                            <select id="tts-voice-select">
+                                <option value="eve" selected>Eve (活泼开朗)</option>
+                                <option value="ara">Ara (温暖亲切)</option>
+                                <option value="rex">Rex (自信清晰)</option>
+                                <option value="sal">Sal (平稳流畅)</option>
+                                <option value="leo">Leo (威严沉稳)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>插入控制标签</label>
+                            <select id="tts-emotion-select">
+                                <option value="" disabled selected>✨ 选择情感标签...</option>
+                                <option value="[laugh]">😂 [laugh] - 笑声</option>
+                                <option value="[sigh]">😮‍💨 [sigh] - 叹气</option>
+                                <option value="[pause]">⏱️ [pause] - 短停顿</option>
+                                <option value="<whisper>...</whisper>">🤫 &lt;whisper&gt; - 耳语</option>
+                                <option value="<emphasis>...</emphasis>">❗ &lt;emphasis&gt; - 强调</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
+                                <label style="margin-bottom:0;">输入文字</label>
+                                <button id="tts-magic-btn" class="secondary-btn small" title="让 AI 自动分析文本并插入最完美的情感标签">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI 情感注入
+                                </button>
+                            </div>
+                            <textarea id="tts-input" placeholder="输入要合成的文字..." rows="4"></textarea>
+                        </div>
+                        <button id="tts-generate-btn" class="primary-btn full-width">生成语音 <i class="fa-solid fa-wave-square"></i></button>
+                        <div id="tts-status" class="status-text"></div>
+                        <div style="display:flex; gap:10px; margin-top:15px; align-items:center;">
+                            <audio id="tts-player" controls style="display:none; flex:1;"></audio>
+                            <a id="tts-download-btn" class="secondary-btn" style="display:none;" href="#" download="omni-voice.mp3" title="下载到本地"><i class="fa-solid fa-download"></i></a>
+                        </div>
+                    </div>
+                    
+                    <!-- STT 区域 -->
+                    <div class="right-panel">
+                        <h3>🎙️ 语音智能转写 (STT)</h3>
+                        <div class="stt-container">
+                            <button type="button" class="mic-circle" id="mic-btn" title="开始录音" aria-label="开始或结束录音">
+                                <i class="fa-solid fa-microphone"></i>
+                            </button>
+                            <p id="stt-status">点击麦克风开始录音</p>
+                            <div class="stt-meta">
+                                <span id="stt-duration">00:00</span>
+                                <span id="stt-format">等待录音</span>
+                            </div>
+                            <div class="stt-result-area">
+                                <h4>转写稿</h4>
+                                <div id="stt-result-text" class="stt-result">暂无转写内容</div>
+                                <div class="stt-actions">
+                                    <button id="stt-summarize-btn" class="secondary-btn small" style="display:none;"><i class="fa-solid fa-bolt"></i> AI 一键总结</button>
+                                </div>
+                                <div id="stt-summary-area" class="stt-summary" style="display:none;">
+                                    <h4><i class="fa-solid fa-list-check"></i> 会议重点</h4>
+                                    <div id="stt-summary-text" class="stt-summary-text"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 模块四：云端生产力 -->
+            <section id="notes-module" class="module-view">
+                <div class="module-layout full-height">
+                    <div class="notes-header">
+                        <h3><i class="fa-solid fa-cloud"></i> 去中心化备忘录 (Puter KV)</h3>
+                        <p class="sub-text">无需数据库！所有数据通过 puter.kv 接口永久加密保存在您的个人云端账户中。</p>
+                    </div>
+                    <div class="notes-editor">
+                        <textarea id="notes-textarea" placeholder="在这里写下你的灵感... (自动保存到云端)"></textarea>
+                    </div>
+                    <div class="notes-footer">
+                        <span id="notes-status-text" class="status-text">就绪</span>
+                        <div style="display:flex; gap:10px; flex-wrap: wrap; justify-content: flex-end;">
+                            <a class="secondary-btn" href="https://puter.com/app/kv" target="_blank" title="查看底层数据库"><i class="fa-solid fa-database"></i> 管理数据</a>
+                            <button id="notes-download-btn" class="secondary-btn"><i class="fa-solid fa-download"></i> 导出 .md</button>
+                            <button id="notes-save-btn" class="primary-btn">手动同步至云端</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- 全局加载与提示遮罩 -->
+<div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+        <p id="modal-text">正在处理...</p>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
