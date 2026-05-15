@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f111a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Omni-AI Hub">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Omni-AI Hub | 全能 AI 工作站</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/icon.svg">
     <!-- Puter.js 核心库 -->
     <script src="https://js.puter.com/v2/"></script>
     <!-- 字体与图标资源 -->
@@ -58,6 +66,9 @@
                     <button id="deploy-btn" class="secondary-btn small"><i class="fa-solid fa-rocket"></i> 发布到 Puter</button>
                     <span id="deploy-status" class="deploy-status">未发布</span>
                 </div>
+                <button id="pwa-install-btn" class="secondary-btn small pwa-install-btn" style="display:none;">
+                    <i class="fa-solid fa-mobile-screen-button"></i> 安装应用
+                </button>
                 <div class="user-profile" id="user-profile">
                     <button id="login-btn" class="primary-btn">一键授权登录</button>
                     <div id="user-info" class="user-info" style="display: none;">
@@ -291,6 +302,6 @@
     </div>
 </div>
 
-<script src="js/app.js?v=20260514-free1"></script>
+<script src="js/app.js?v=20260515-pwa1"></script>
 </body>
 </html>

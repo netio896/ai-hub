@@ -19,11 +19,108 @@ class UIManager {
     }
 }
 
+class DeviceAndPWAModule {
+    constructor() {
+        this.installBtn = document.getElementById('pwa-install-btn');
+        this.deferredPrompt = null;
+        this.isStandalone = this.detectStandalone();
+
+        this.applyDeviceState();
+        window.addEventListener('resize', () => this.applyDeviceState());
+        this.bindInstallPrompt();
+        this.registerServiceWorker();
+    }
+
+    detectMobile() {
+        const ua = navigator.userAgent || '';
+        const mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+        const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+        const narrowViewport = window.matchMedia?.('(max-width: 860px)').matches;
+        return Boolean(mobileUa || (coarsePointer && narrowViewport));
+    }
+
+    detectStandalone() {
+        return window.matchMedia?.('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true ||
+            document.referrer.startsWith('android-app://');
+    }
+
+    applyDeviceState() {
+        const isMobile = this.detectMobile();
+        document.documentElement.classList.toggle('is-mobile-device', isMobile);
+        document.documentElement.classList.toggle('is-desktop-device', !isMobile);
+        document.documentElement.classList.toggle('is-standalone-app', this.isStandalone);
+    }
+
+    bindInstallPrompt() {
+        if (!this.installBtn || this.isStandalone) return;
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            this.deferredPrompt = event;
+            this.installBtn.style.display = 'inline-flex';
+        });
+
+        window.addEventListener('appinstalled', () => {
+            this.deferredPrompt = null;
+            this.installBtn.style.display = 'none';
+            document.documentElement.classList.add('is-standalone-app');
+        });
+
+        this.installBtn.addEventListener('click', () => this.installApp());
+
+        if (this.isIOS()) {
+            this.installBtn.style.display = 'inline-flex';
+        }
+    }
+
+    async installApp() {
+        if (this.deferredPrompt) {
+            this.deferredPrompt.prompt();
+            await this.deferredPrompt.userChoice;
+            this.deferredPrompt = null;
+            this.installBtn.style.display = 'none';
+            return;
+        }
+
+        if (this.isIOS()) {
+            UIManager.showAlert('iPhone/iPad: Tap Share, then Add to Home Screen.');
+            return;
+        }
+
+        UIManager.showAlert('Use your browser menu to install this app.');
+    }
+
+    isIOS() {
+        return /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+    }
+
+    async registerServiceWorker() {
+        if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
+
+        try {
+            await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        } catch (error) {
+            console.warn('Service worker registration failed', error);
+        }
+    }
+}
+
 class DeployModule {
     constructor() {
         this.deployBtn = document.getElementById('deploy-btn');
         this.statusEl = document.getElementById('deploy-status');
-        this.siteFiles = ['index.html', 'css/style.css', 'js/app.js'];
+        this.siteFiles = [
+            'index.html',
+            'css/style.css',
+            'js/app.js',
+            'manifest.webmanifest',
+            'sw.js',
+            'offline.html',
+            'icons/icon-192.png',
+            'icons/icon-512.png',
+            'icons/icon.svg'
+        ];
         this.defaultSubdomain = this.getDefaultSubdomain();
 
         if (this.deployBtn) {
@@ -1148,6 +1245,7 @@ class NotesModule {
 
 class OmniApp {
     constructor() {
+        this.deviceAndPWA = new DeviceAndPWAModule();
         this.deployModule = new DeployModule();
         this.authManager = new AuthManager();
         this.chatModule = new ChatModule();

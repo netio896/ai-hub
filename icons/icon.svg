@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Omni-AI Hub">
+  <rect width="512" height="512" rx="112" fill="#0f111a"/>
+  <path d="M256 74 412 164v184L256 438 100 348V164L256 74Z" fill="#8b5cf6"/>
+  <path d="M256 116 376 186v140L256 396 136 326V186l120-70Z" fill="#111827"/>
+  <path d="M256 150 346 202v106l-90 52-90-52V202l90-52Z" fill="#10b981"/>
+  <path d="M256 190 312 222v68l-56 32-56-32v-68l56-32Z" fill="#f8fafc"/>
+</svg>
