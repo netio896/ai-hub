@@ -2,6 +2,8 @@
 
 Next.js + Vercel API wrapper for Hermes/OpenClaw, with the original Puter-powered UI preserved at `/legacy/index.html`.
 
+The chat API now runs through a single OpenAI-compatible relay configured by `OPENAI_BASE_URL` and `OPENAI_API_KEY`.
+
 ## Available endpoints
 
 - `GET /api/health`
@@ -24,6 +26,8 @@ Next.js + Vercel API wrapper for Hermes/OpenClaw, with the original Puter-powere
 }
 ```
 
+`provider` stays in the API shape for compatibility, but all supported models are routed through the configured OpenAI-compatible relay.
+
 Auth:
 
 - `/api/health` is public
@@ -34,9 +38,8 @@ Auth:
 Copy `.env.example` to `.env.local` and fill in:
 
 - `SERVICE_API_KEY`
+- `OPENAI_BASE_URL`
 - `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `XAI_API_KEY`
 
 ## Planned next endpoints
 

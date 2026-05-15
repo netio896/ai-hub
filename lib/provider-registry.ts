@@ -1,7 +1,5 @@
 import type { LanguageModel } from "ai";
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
-import { createXai } from "@ai-sdk/xai";
 import { ApiError } from "@/lib/http";
 
 export type ChatProvider = "openai" | "anthropic" | "xai";
@@ -44,17 +42,12 @@ const SUPPORTED_MODELS: SupportedModel[] = [
   }
 ];
 
-const PROVIDER_ENV_KEYS: Record<ChatProvider, string> = {
-  openai: "OPENAI_API_KEY",
-  anthropic: "ANTHROPIC_API_KEY",
-  xai: "XAI_API_KEY"
-};
-
 export function getProviderReadiness() {
+  const gatewayConfigured = isGatewayConfigured();
   return {
-    openai: Boolean(process.env.OPENAI_API_KEY),
-    anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
-    xai: Boolean(process.env.XAI_API_KEY)
+    openai: gatewayConfigured,
+    anthropic: gatewayConfigured,
+    xai: gatewayConfigured
   };
 }
 
@@ -134,33 +127,16 @@ export function resolveModelSelection(input: { provider?: string; model?: string
 }
 
 export function createLanguageModel(provider: ChatProvider, modelId: string): LanguageModel {
-  const apiKey = process.env[PROVIDER_ENV_KEYS[provider]];
-  if (!apiKey) {
-    throw new ApiError(
-      503,
-      "provider_not_configured",
-      `${provider} provider is not configured on the server.`,
-      provider
-    );
-  }
-
-  switch (provider) {
-    case "openai":
-      return createOpenAI({ apiKey })(modelId);
-    case "anthropic":
-      return createAnthropic({ apiKey })(modelId);
-    case "xai":
-      return createXai({ apiKey })(modelId);
-  }
+  ensureProviderConfigured(provider);
+  return createOpenAICompatibleProvider()(modelId);
 }
 
 function ensureProviderConfigured(provider: ChatProvider) {
-  const envKey = PROVIDER_ENV_KEYS[provider];
-  if (!process.env[envKey]) {
+  if (!isGatewayConfigured()) {
     throw new ApiError(
       503,
       "provider_not_configured",
-      `${provider} provider is not configured on the server.`,
+      `${provider} provider gateway is not configured on the server.`,
       provider
     );
   }
@@ -168,4 +144,22 @@ function ensureProviderConfigured(provider: ChatProvider) {
 
 function isProvider(value: string): value is ChatProvider {
   return value === "openai" || value === "anthropic" || value === "xai";
+}
+
+function isGatewayConfigured() {
+  return Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_BASE_URL);
+}
+
+function createOpenAICompatibleProvider() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  const baseURL = process.env.OPENAI_BASE_URL;
+
+  if (!apiKey || !baseURL) {
+    return createOpenAI({ apiKey: "missing-gateway-config" });
+  }
+
+  return createOpenAI({
+    apiKey,
+    baseURL
+  });
 }

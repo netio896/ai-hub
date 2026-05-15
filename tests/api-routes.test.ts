@@ -4,15 +4,14 @@ afterEach(() => {
   vi.resetModules();
   vi.restoreAllMocks();
   delete process.env.SERVICE_API_KEY;
+  delete process.env.OPENAI_BASE_URL;
   delete process.env.OPENAI_API_KEY;
-  delete process.env.ANTHROPIC_API_KEY;
-  delete process.env.XAI_API_KEY;
 });
 
 describe("API routes", () => {
   it("health route reports provider readiness without auth", async () => {
+    process.env.OPENAI_BASE_URL = "http://relay.example/v1";
     process.env.OPENAI_API_KEY = "openai";
-    process.env.XAI_API_KEY = "xai";
 
     const { GET } = await import("@/app/api/health/route");
     const response = await GET();
@@ -24,7 +23,7 @@ describe("API routes", () => {
       service: "omni-ai-hub-api",
       providers: {
         openai: true,
-        anthropic: false,
+        anthropic: true,
         xai: true
       }
     });
@@ -66,6 +65,7 @@ describe("API routes", () => {
 
   it("chat route returns normalized JSON for non-stream requests", async () => {
     process.env.SERVICE_API_KEY = "secret";
+    process.env.OPENAI_BASE_URL = "http://relay.example/v1";
     process.env.OPENAI_API_KEY = "openai";
 
     const generateText = vi.fn().mockResolvedValue({
@@ -111,6 +111,7 @@ describe("API routes", () => {
 
   it("chat route returns SSE for stream requests", async () => {
     process.env.SERVICE_API_KEY = "secret";
+    process.env.OPENAI_BASE_URL = "http://relay.example/v1";
     process.env.OPENAI_API_KEY = "openai";
 
     const streamText = vi.fn().mockReturnValue({
