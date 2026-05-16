@@ -10,6 +10,20 @@ This document describes how to call the production Omni-AI Hub API as a standard
 - Protected native routes: `GET /api/models`, `POST /api/chat`
 - Protected OpenAI-compatible routes: `GET /v1/models`, `POST /v1/chat/completions`
 
+## Key boundary / 密钥边界
+
+Keep client-facing service auth and server-side relay auth separate.
+
+- OpenClaw/Hermes -> AI Hub: use `SERVICE_API_KEY` as `Authorization: Bearer <SERVICE_API_KEY>`.
+- AI Hub -> OpenAI-compatible relay: use server-side `OPENAI_BASE_URL` and `OPENAI_API_KEY`.
+- Do not put `OPENAI_API_KEY` in OpenClaw/Hermes configs, and do not use it as the client bearer token for AI Hub.
+
+中文规则：
+
+- `SERVICE_API_KEY` 是客户端调用 AI Hub 的服务密钥。
+- `OPENAI_API_KEY` 是 AI Hub 服务端调用中转的密钥。
+- 两者不可混用，OpenClaw/Hermes 不应持有中转 key。
+
 ## Endpoint summary
 
 ### `GET /api/health`
