@@ -251,6 +251,51 @@ describe("API routes", () => {
     );
   });
 
+  it("OpenAI-compatible chat route ignores empty context messages", async () => {
+    process.env.SERVICE_API_KEY = "secret";
+    process.env.OPENAI_BASE_URL = "http://relay.example/v1";
+    process.env.OPENAI_API_KEY = "openai";
+
+    const generateText = vi.fn().mockResolvedValue({
+      text: "OK",
+      finishReason: "stop",
+      usage: { inputTokens: 2, outputTokens: 1, totalTokens: 3 },
+      response: { id: "chatcmpl_empty_context" }
+    });
+
+    vi.doMock("ai", () => ({
+      generateText,
+      streamText: vi.fn()
+    }));
+
+    const { POST } = await import("@/app/v1/chat/completions/route");
+    const response = await POST(
+      new Request("http://localhost/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-5.2",
+          messages: [
+            { role: "user", content: "Reply OK" },
+            { role: "assistant", content: "" }
+          ]
+        })
+      })
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.choices[0].message.content).toBe("OK");
+    expect(generateText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: [{ role: "user", content: "Reply OK" }]
+      })
+    );
+  });
+
   it("OpenAI-compatible chat route returns SSE chunks for stream requests", async () => {
     process.env.SERVICE_API_KEY = "secret";
     process.env.OPENAI_BASE_URL = "http://relay.example/v1";

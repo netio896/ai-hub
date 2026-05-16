@@ -1,21 +1,11 @@
-import { generateText, streamText } from "ai";
+import { generateText, streamText, type ModelMessage } from "ai";
 import { ApiError, jsonError } from "@/lib/http";
 import { createLanguageModel, listSupportedModels, resolveModelSelection } from "@/lib/provider-registry";
-import { normalizeChatPayload, toMessage, type ChatPayload } from "@/lib/chat-service";
+import { toMessage, type ChatPayload } from "@/lib/chat-service";
 
 type OpenAIChatPayload = Omit<ChatPayload, "maxTokens"> & {
   max_tokens?: number;
 };
-
-function toChatPayload(payload: OpenAIChatPayload): ChatPayload {
-  return {
-    messages: payload.messages,
-    model: payload.model,
-    stream: payload.stream,
-    temperature: payload.temperature,
-    maxTokens: payload.max_tokens
-  };
-}
 
 export function listOpenAICompatibleModels() {
   return {
@@ -30,7 +20,7 @@ export function listOpenAICompatibleModels() {
 }
 
 export async function generateOpenAIChatCompletion(payload: OpenAIChatPayload) {
-  const normalized = normalizeChatPayload(toChatPayload(payload));
+  const normalized = normalizeOpenAIChatPayload(payload);
   const selection = resolveModelSelection(normalized);
   const model = createLanguageModel(selection.provider, selection.id);
 
@@ -65,7 +55,7 @@ export async function generateOpenAIChatCompletion(payload: OpenAIChatPayload) {
 }
 
 export async function streamOpenAIChatCompletion(payload: OpenAIChatPayload) {
-  const normalized = normalizeChatPayload(toChatPayload(payload));
+  const normalized = normalizeOpenAIChatPayload(payload);
   const selection = resolveModelSelection(normalized);
   const model = createLanguageModel(selection.provider, selection.id);
   const id = `chatcmpl_${crypto.randomUUID()}`;
@@ -158,6 +148,123 @@ export async function streamOpenAIChatCompletion(payload: OpenAIChatPayload) {
       error instanceof ApiError ? error : new ApiError(500, "stream_error", toMessage(error));
     return jsonError(apiError);
   }
+}
+
+function normalizeOpenAIChatPayload(payload: OpenAIChatPayload) {
+  if (!payload || typeof payload !== "object") {
+    throw new ApiError(400, "invalid_request", "Request body must be a JSON object.");
+  }
+
+  const messages = normalizeOpenAIMessages(payload.messages);
+  const temperature =
+    payload.temperature === undefined ? undefined : normalizeNumber(payload.temperature, "temperature");
+  const maxTokens =
+    payload.max_tokens === undefined ? undefined : normalizeInteger(payload.max_tokens, "max_tokens");
+
+  return {
+    provider: payload.provider,
+    model: payload.model,
+    temperature,
+    maxTokens,
+    messages
+  };
+}
+
+function normalizeOpenAIMessages(messages: unknown): ModelMessage[] {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    throw new ApiError(400, "invalid_messages", "Request must include a non-empty messages array.");
+  }
+
+  const normalized = messages.flatMap((message, index) => {
+    const normalizedMessage = normalizeOpenAIMessage(message, index);
+    return normalizedMessage ? [normalizedMessage] : [];
+  });
+
+  if (normalized.length === 0) {
+    throw new ApiError(400, "invalid_messages", "Request must include at least one non-empty text message.");
+  }
+
+  return normalized;
+}
+
+function normalizeOpenAIMessage(message: unknown, index: number): ModelMessage | null {
+  if (!message || typeof message !== "object") {
+    throw new ApiError(400, "invalid_messages", `Message at index ${index} must be an object.`);
+  }
+
+  const candidate = message as {
+    role?: unknown;
+    content?: unknown;
+  };
+
+  if (
+    candidate.role !== "system" &&
+    candidate.role !== "user" &&
+    candidate.role !== "assistant" &&
+    candidate.role !== "tool"
+  ) {
+    throw new ApiError(
+      400,
+      "invalid_messages",
+      `Message at index ${index} must have role system, user, assistant, or tool.`
+    );
+  }
+
+  const content = extractTextContent(candidate.content);
+  if (!content) {
+    return null;
+  }
+
+  if (candidate.role === "tool") {
+    return null;
+  }
+
+  return {
+    role: candidate.role,
+    content
+  };
+}
+
+function extractTextContent(content: unknown) {
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  if (!Array.isArray(content)) {
+    return "";
+  }
+
+  return content
+    .map((part) => {
+      if (!part || typeof part !== "object") {
+        return "";
+      }
+
+      const candidate = part as {
+        type?: unknown;
+        text?: unknown;
+      };
+
+      return candidate.type === "text" && typeof candidate.text === "string" ? candidate.text : "";
+    })
+    .join("\n")
+    .trim();
+}
+
+function normalizeNumber(value: unknown, field: string) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    throw new ApiError(400, "invalid_request", `${field} must be a valid number.`);
+  }
+
+  return value;
+}
+
+function normalizeInteger(value: unknown, field: string) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+    throw new ApiError(400, "invalid_request", `${field} must be a positive integer.`);
+  }
+
+  return value;
 }
 
 function toOpenAIUsage(usage: unknown) {
