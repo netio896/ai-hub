@@ -8,11 +8,19 @@ The chat API now runs through a single OpenAI-compatible relay configured by `OP
 
 For the production HTTP API contract, bearer auth, SSE streaming behavior, and integration notes for Hermes or OpenClaw, see [docs/api-for-hermes-openclaw.md](docs/api-for-hermes-openclaw.md).
 
+OpenClaw can use the OpenAI-compatible adapter directly:
+
+- `baseUrl`: `https://omni-ai-hub-peach.vercel.app/v1`
+- `apiKey`: `<SERVICE_API_KEY>`
+- `api`: `openai-completions`
+
 ## Available endpoints
 
 - `GET /api/health`
 - `GET /api/models`
 - `POST /api/chat`
+- `GET /v1/models`
+- `POST /v1/chat/completions`
 
 `/api/chat` accepts:
 
@@ -35,7 +43,7 @@ For the production HTTP API contract, bearer auth, SSE streaming behavior, and i
 Auth:
 
 - `/api/health` is public
-- all other `/api/*` routes require `Authorization: Bearer <SERVICE_API_KEY>`
+- all other `/api/*` and `/v1/*` routes require `Authorization: Bearer <SERVICE_API_KEY>`
 
 ## Environment
 

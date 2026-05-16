@@ -7,7 +7,8 @@ This document describes how to call the production Omni-AI Hub API as a standard
 - Production base URL: `https://omni-ai-hub-peach.vercel.app`
 - Auth header for protected routes: `Authorization: Bearer <SERVICE_API_KEY>`
 - Public route: `GET /api/health`
-- Protected routes: `GET /api/models`, `POST /api/chat`
+- Protected native routes: `GET /api/models`, `POST /api/chat`
+- Protected OpenAI-compatible routes: `GET /v1/models`, `POST /v1/chat/completions`
 
 ## Endpoint summary
 
@@ -191,21 +192,143 @@ For Hermes:
 
 ## OpenClaw integration notes
 
-Treat this service as a standard JSON chat backend with optional SSE.
+Use the OpenAI-compatible adapter path for OpenClaw. This matches OpenClaw's existing `openai-completions` provider schema and avoids custom `/api/chat` client glue.
 
 Recommended mapping:
 
-- Base URL: `https://omni-ai-hub-peach.vercel.app`
-- Auth header: `Authorization: Bearer <SERVICE_API_KEY>`
-- Chat path: `/api/chat`
-- Model discovery path: `/api/models`
+- Provider id: `omni-ai-hub`
+- Base URL: `https://omni-ai-hub-peach.vercel.app/v1`
+- API key: `<SERVICE_API_KEY>`
+- API adapter: `openai-completions`
+- Chat path resolved by OpenClaw: `/v1/chat/completions`
+- Model discovery path resolved by OpenClaw: `/v1/models`
+
+Minimal provider shape:
+
+```json
+{
+  "models": {
+    "providers": {
+      "omni-ai-hub": {
+        "baseUrl": "https://omni-ai-hub-peach.vercel.app/v1",
+        "apiKey": "<SERVICE_API_KEY>",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "gpt-5.2",
+            "name": "gpt-5.2",
+            "contextWindow": 128000
+          }
+        ]
+      }
+    }
+  }
+}
+```
 
 For OpenClaw:
 
-- Query `/api/models` first and use one returned `model` value.
-- Keep `provider` in the request body if the OpenClaw side expects a provider field, but do not rely on direct provider-specific credentials.
-- For streaming mode, consume the SSE response and append each token event in order.
-- For simple request/response mode, use non-stream JSON and read the final `text` field.
+- Use `omni-ai-hub/gpt-5.2` as the first test model.
+- Do not put the relay key or `OPENAI_API_KEY` in OpenClaw; use only `SERVICE_API_KEY`.
+- If streaming is enabled, OpenClaw receives standard OpenAI-style `data:` chunks ending with `data: [DONE]`.
+- The existing `/api/chat` route remains available for clients that are not OpenAI-compatible.
+
+## OpenAI-compatible endpoints
+
+### `GET /v1/models`
+
+Example:
+
+```bash
+curl https://omni-ai-hub-peach.vercel.app/v1/models \
+  -H "Authorization: Bearer <SERVICE_API_KEY>"
+```
+
+Expected response shape:
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gpt-5.2",
+      "object": "model",
+      "created": 0,
+      "owned_by": "openai"
+    }
+  ]
+}
+```
+
+### `POST /v1/chat/completions`
+
+Example non-stream request:
+
+```bash
+curl https://omni-ai-hub-peach.vercel.app/v1/chat/completions \
+  -H "Authorization: Bearer <SERVICE_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-5.2",
+    "stream": false,
+    "max_tokens": 800,
+    "messages": [
+      { "role": "user", "content": "ping" }
+    ]
+  }'
+```
+
+Expected response shape:
+
+```json
+{
+  "id": "chatcmpl_xxx",
+  "object": "chat.completion",
+  "created": 1770000000,
+  "model": "gpt-5.2",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "pong"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 7,
+    "completion_tokens": 5,
+    "total_tokens": 12
+  }
+}
+```
+
+Example stream request:
+
+```bash
+curl https://omni-ai-hub-peach.vercel.app/v1/chat/completions \
+  -H "Authorization: Bearer <SERVICE_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -N \
+  -d '{
+    "model": "gpt-5.2",
+    "stream": true,
+    "messages": [
+      { "role": "user", "content": "hello" }
+    ]
+  }'
+```
+
+Expected stream shape:
+
+```text
+data: {"id":"chatcmpl_xxx","object":"chat.completion.chunk","created":1770000000,"model":"gpt-5.2","choices":[{"index":0,"delta":{"content":"Hel"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl_xxx","object":"chat.completion.chunk","created":1770000000,"model":"gpt-5.2","choices":[{"index":0,"delta":{"content":"lo"},"finish_reason":null}]}
+
+data: [DONE]
+```
 
 ## Error envelope and common failures
 
@@ -234,4 +357,5 @@ Common cases:
 
 - Only chat endpoints are implemented right now.
 - `POST /api/image`, `POST /api/tts`, and `POST /api/stt` are not available yet.
+- OpenAI-compatible `/v1/images/generations`, `/v1/audio/*`, and `/v1/embeddings` are not implemented.
 - Model availability should always be discovered from `/api/models`, not copied from a stale document.

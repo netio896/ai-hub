@@ -2,7 +2,7 @@ import { generateText, streamText, type ModelMessage } from "ai";
 import { ApiError, jsonError } from "@/lib/http";
 import { createLanguageModel, resolveModelSelection } from "@/lib/provider-registry";
 
-type ChatPayload = {
+export type ChatPayload = {
   messages?: unknown;
   provider?: string;
   model?: string;
@@ -107,7 +107,7 @@ export async function streamChatResponse(payload: ChatPayload) {
   }
 }
 
-function normalizeChatPayload(payload: ChatPayload) {
+export function normalizeChatPayload(payload: ChatPayload) {
   if (!payload || typeof payload !== "object") {
     throw new ApiError(400, "invalid_request", "Request body must be a JSON object.");
   }
@@ -188,6 +188,6 @@ function normalizeInteger(value: unknown, field: string) {
   return value;
 }
 
-function toMessage(error: unknown) {
+export function toMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unexpected error";
 }
